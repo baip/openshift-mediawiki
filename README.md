@@ -1,15 +1,17 @@
-# OpenShift - MediaWiki
+OpenShift - MediaWiki
 ========
-QuickStart MediaWiki 1.25.2 on OpenShift.
 
-As of today (12/09/2015), this is the latest version of mediawiki.
+QuickStart MediaWiki 1.29.0 on OpenShift.
+
 Follow the steps below to build on OpenShift.
 
-PreInstalled Plugins: 
+PreInstalled Plugins:
 
 Cite,
 CiteThisPage,
+ConfirmAccount,
 Gadgets,
+GoogleLogin,
 ImageMap,
 InputBox,
 Interwiki,
@@ -22,29 +24,32 @@ Renameuser,
 SpamBlacklist,
 SyntaxHighlight_GeSHi,
 TitleBlacklist,
+UserMerge,
 WikiEditor,
 Google Analytics.
 
 
 Whats new
 ==========
-8/10/2015
-Openshift uses HAProxy for loadbalancing in front of the servers .
-This causes mediawiki to show the same internal proxy ip for all users.
-I've written a small plugin to fix this. 
-Can be found under /extensions/OpenshiftMediawikiIpFix 
 
+8/10/2015
+
+Openshift uses HAProxy for loadbalancing in front of the servers.
+This causes mediawiki to show the same internal proxy ip for all users.
+I've written a small plugin to fix this.
+Can be found under /extensions/OpenshiftMediawikiIpFix
 
 30/09/2015
 
-Plugins: 
+Plugins:
 
 1. Scribunto (with standalone lua, enables you to do in wiki scripting and use popular features like infobox)
-2. mobile frontend ,
+2. mobile frontend
 3. google analytics (edit LocalSettings.php to set your google analytics account. edit line 165.)
-Google analytics extension repo/code can be found here -> https://github.com/negati-ve/mediawiki-google-analytics-extension 
-* uploads moved to data directory.
-** Uploads are now persistent. 
+Google analytics extension repo/code can be found here -> https://github.com/negati-ve/mediawiki-google-analytics-extension
+* uploads moved to data directory. Uploads are now persistent.
+
+
 Quickstart
 ==========
 
@@ -68,6 +73,7 @@ Quickstart
 6. Default Admin Username: admin
    Default Password: admin123
 
+
 Updates
 =======
 
@@ -83,7 +89,6 @@ and re-push.
     ```
     $ git push
     ```
-
 
 
 Repo layout
@@ -103,12 +108,10 @@ misc/ - For not-externally exposed php code
 
 
 Notes about layout
-==================
+------------------
 Please leave php, libs and data directories but feel free to create additional
 directories if needed.
 
 Note: Every time you push, everything in your remote repo dir gets recreated
 please store long term items (like an sqlite database) in ../data which will
 persist between pushes of your repo.
-
-

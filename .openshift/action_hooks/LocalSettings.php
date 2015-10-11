@@ -18,8 +18,8 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
 
-$wgSitename = "MediaWiki.Negative";
-$wgMetaNamespace = "MediaWiki.Negative";
+$wgSitename = "MediaWiki";
+$wgMetaNamespace = "MediaWiki";
 
 ## The URL base path to the directory containing the wiki;
 ## defaults for all runtime URL paths are based off of this.
@@ -46,17 +46,17 @@ $wgLogo = "$wgResourceBasePath/resources/assets/images/logo.png";
 $wgEnableEmail = true;
 $wgEnableUserEmail = true; # UPO
 
-$wgEmergencyContact = "mail@negative.co.in";
-$wgPasswordSender = "mail@negative.co.in";
+$wgEmergencyContact = "admin@example.com";
+$wgPasswordSender = "admin@example.com";
 
-$wgEnotifUserTalk = false; # UPO
-$wgEnotifWatchlist = false; # UPO
-$wgEmailAuthentication = true;
+$wgEnotifUserTalk = true; # UPO
+$wgEnotifWatchlist = true; # UPO
+$wgEmailAuthentication = false;
 
 ## Database settings
 $wgDBtype           = "mysql";
 $wgDBserver         = $_ENV['OPENSHIFT_MYSQL_DB_HOST'].":".$_ENV['OPENSHIFT_MYSQL_DB_PORT'];
-$wgDBname           = "openshift_mediawiki";
+$wgDBname           = $_ENV['OPENSHIFT_APP_NAME'];
 $wgDBuser           = $_ENV['OPENSHIFT_MYSQL_DB_USERNAME'];
 $wgDBpassword       = $_ENV['OPENSHIFT_MYSQL_DB_PASSWORD'];
 
@@ -70,7 +70,7 @@ $wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
 $wgDBmysql5 = false;
 
 ## Shared memory settings
-$wgMainCacheType = CACHE_NONE;
+$wgMainCacheType = CACHE_ACCEL;
 $wgMemCachedServers = array();
 
 ## To enable image uploads, make sure the 'images' directory
@@ -93,6 +93,15 @@ $wgShellLocale = "en_US.UTF-8";
 ## this, if it's not already uncommented:
 #$wgHashedUploadDirectory = false;
 
+## If you have the appropriate support software installed
+## you can enable inline LaTeX equations:
+#$wgUseTeX           = true;
+
+# The following permissions were set based on your choice in the installer
+$wgGroupPermissions['*']['createaccount'] = false;
+$wgGroupPermissions['*']['edit'] = false;
+$wgGroupPermissions['*']['read'] = false;
+
 ## Set $wgCacheDirectory to a writable directory on the web server
 ## to make your wiki go slightly faster. The directory should not
 ## be publically accessible from the web.
@@ -101,19 +110,20 @@ $wgShellLocale = "en_US.UTF-8";
 # Site language code, should be one of the list in ./languages/Names.php
 $wgLanguageCode = "en";
 
-$wgSecretKey = "8b78c945fb4a8d50a5c382f5de9373c80b84f7a04c9baccf37dec602bd4ee829";
+$wgSecretKey = "MEDIAWIKI_SECRET_KEY";
 
 # Site upgrade key. Must be set to a string (default provided) to turn on the
 # web installer while LocalSettings.php is in place
-$wgUpgradeKey = "d7b591c9f9d31542";
+$wgUpgradeKey = "MEDIAWIKI_UPGRADE_KEY";
 
 ## For attaching licensing metadata to pages, and displaying an
 ## appropriate copyright notice / icon. GNU Free Documentation
 ## License and Creative Commons licenses are supported so far.
+$wgEnableCreativeCommonsRdf = true;
 $wgRightsPage = ""; # Set to the title of a wiki page that describes your license/copyright
-$wgRightsUrl = "https://www.gnu.org/copyleft/fdl.html";
-$wgRightsText = "GNU Free Documentation License 1.3 or later";
-$wgRightsIcon = "$wgResourceBasePath/resources/assets/licenses/gnu-fdl.png";
+$wgRightsUrl = "http://creativecommons.org/licenses/by-sa/3.0/";
+$wgRightsText = "Creative Commons Attribution Share Alike";
+$wgRightsIcon = "{$wgStylePath}/common/images/cc-by-sa.png";
 
 # Path to the GNU diff3 utility. Used for conflict resolution.
 $wgDiff3 = "/usr/bin/diff3";
@@ -160,20 +170,20 @@ wfLoadExtension( 'WikiEditor' );
 # Add more configuration options below.
 
 ##Clients real ip address
-##known issue : multiple ips if you are behind cloudflare or similar. will fix soon. 
+##known issue : multiple ips if you are behind cloudflare or similar. will fix soon.
 require_once "$IP/extensions/OpenshiftMediawikiIpFix/OpenshiftMediawikiIpFix.php";
 ##
 
 #analytics
 require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
 // Replace xxxxxxx-x with YOUR GoogleAnalytics UA number
-$wgGoogleAnalyticsAccount = 'UA-xxxxxxxx-x'; 
+$wgGoogleAnalyticsAccount = 'UA-xxxxxxxx-x';
 // Add HTML code for any additional web analytics (can be used alone or with $wgGoogleAnalyticsAccount)
 //$wgGoogleAnalyticsOtherCode = '<script type="text/javascript" src="https://analytics.example.com/tracking.js"></script>';
 
 // Optional configuration (for defaults see googleAnalytics.php)
 // Store full IP address in Google Universal Analytics (see https://support.google.com/analytics/answer/2763052?hl=en for details)
-$wgGoogleAnalyticsAnonymizeIP = false; 
+$wgGoogleAnalyticsAnonymizeIP = false;
 // Array with NUMERIC namespace IDs where web analytics code should NOT be included.
 $wgGoogleAnalyticsIgnoreNsIDs = array(500);
 // Array with page names (see magic word Extension:Google Analytics Integration) where web analytics code should NOT be included.
@@ -184,3 +194,45 @@ $wgGoogleAnalyticsIgnorePages = array('ArticleX', 'Foo:Bar');
 $wgGroupPermissions['sysop']['noanalytics'] = true;
 $wgGroupPermissions['bot']['noanalytics'] = true;
 // To exclude all logged in users give 'noanalytics' permission to 'user' group, i.e.
+
+# ConfirmAccount
+require_once "$IP/extensions/ConfirmAccount/ConfirmAccount.php";
+$wgConfirmAccountContact = 'admin@example.com';
+$wgMakeUserPageFromBio = false;
+$wgAutoWelcomeNewUsers = false;
+$wgConfirmAccountRequestFormItems = array(
+  'UserName'        => array( 'enabled' => true ),
+  'RealName'        => array( 'enabled' => true ),
+  'Biography'       => array( 'enabled' => false, 'minWords' => 10 ),
+  'AreasOfInterest' => array( 'enabled' => false ),
+  'CV'              => array( 'enabled' => false ),
+  'Notes'           => array( 'enabled' => false ),
+  'Links'           => array( 'enabled' => false ),
+  'TermsOfService'  => array( 'enabled' => false ),
+);
+
+# Google Login
+require_once "$IP/extensions/GoogleLogin/GoogleLogin.php";
+$wgGLSecret = 'xxxxxxxxxxxxxxxxxxxxxxxx';
+$wgGLAppId = '12345678901-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com';
+#$wgGLReplaceMWLogin = true;
+$wgGLAllowedDomains = array( 'example.com' );
+$wgGLShowRight = true;
+
+$wgWhitelistRead = array( 'Special:RequestAccount', 'Special:GoogleLogin' );
+
+# UserMerge
+wfLoadExtension( 'UserMerge' );
+// By default nobody can use this function, enable for bureaucrat?
+$wgGroupPermissions['bureaucrat']['usermerge'] = true;
+
+# DeleteHistory
+$wgGroupPermissions['sysop']['DeleteHistory'] = true;
+require_once("$IP/extensions/DeleteHistory/DeleteHistory.php");
+
+#Add filetypes uploadable
+$wgFileExtensions = array_merge($wgFileExtensions, array('svg','tar','gz','tar.gz','tgz','bz2','tar.bz2','tbz','Z','tar.Z','txt','tex','pdf','pptx','ppt','docx','doc','xlsx','xls','f','F','for','FOR','fpp','FPP','f90','F90','f95','F95','c','cpp','cxx','cc','agr','gpl'));
+$wgVerifyMimeType = false;
+
+# Showing more detailed debug information
+$wgShowExceptionDetails = true;
