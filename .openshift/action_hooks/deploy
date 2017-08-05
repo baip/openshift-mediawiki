@@ -6,14 +6,14 @@
 
 set -e
 
-base_version=1.25
-version=1.25.2
+base_version=1.29
+version=1.29.0
 
 if [ -z $OPENSHIFT_MYSQL_DB_HOST ]
 then
     echo 1>&2
     echo "Could not find mysql database.  Please run:" 1>&2
-    echo "rhc cartridge add -a $OPENSHIFT_APP_NAME -c mysql-5.1" 1>&2
+    echo "rhc cartridge add -a $OPENSHIFT_APP_NAME -c mysql-5.5" 1>&2
     echo "then make a sample commit (add whitespace somewhere) and re-push" 1>&2
     echo 1>&2
     exit 5
@@ -22,22 +22,58 @@ fi
 # Download and extract mediawiki
 if [[ ! -d ${OPENSHIFT_DATA_DIR}/mediawiki-${version} ]]
 then
-    cd ${OPENSHIFT_DATA_DIR}
+    pushd ${OPENSHIFT_DATA_DIR}
 
     wget http://releases.wikimedia.org/mediawiki/${base_version}/mediawiki-${version}.tar.gz
     tar xf mediawiki-${version}.tar.gz
+    rm -f mediawiki-${version}.tar.gz
 
-    cd - > /dev/null
+    cd mediawiki-${version}/extensions
+
+    for pkg in https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_29-6766ffc.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_29-193339c.tar.gz https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_29-1e04d8c.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_29-7958904.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_29-de5f67d.tar.gz; do
+        \wget $pkg
+    done
+
+    for pkg in *.tar.gz; do
+        \tar xf $pkg
+        \rm -f $pkg
+    done
+
+    \wget https://github.com/deimosfr/mediawiki_DeleteHistory/archive/master.zip && \unzip master.zip
+    \rm -f master.zip
+    \mv mediawiki_DeleteHistory-master DeleteHistory
+
+    popd - > /dev/null
 fi
 
+mysql_cmd="${OPENSHIFT_DATA_DIR}.mysql/bin/mysql"
+
+if [ ! -f ~/.env/user_vars/OPENSHIFT_MYSQL_DB_USERNAME ]; then
+    echo "Setting MYSQL password and environment variables"
+    OPENSHIFT_MYSQL_DB_USERNAME='root'
+    OPENSHIFT_MYSQL_DB_PASSWORD='root'
+    echo ${OPENSHIFT_MYSQL_DB_USERNAME} > ~/.env/user_vars/OPENSHIFT_MYSQL_DB_USERNAME
+    echo ${OPENSHIFT_MYSQL_DB_PASSWORD} > ~/.env/user_vars/OPENSHIFT_MYSQL_DB_PASSWORD
+
+    $mysql_cmd --socket=${TMP}mysql.sock -u ${OPENSHIFT_MYSQL_DB_USERNAME} -e "GRANT ALL PRIVILEGES ON *.* TO '${OPENSHIFT_MYSQL_DB_USERNAME}'@'${OPENSHIFT_MYSQL_DB_HOST}' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+fi
+
+mysql_cnf="${OPENSHIFT_DATA_DIR}.mysql/my.cnf"
+if ! \grep -q "bind-address=${OPENSHIFT_MYSQL_DB_HOST}" $mysql_cnf; then
+    echo "Patching $mysql_cnf to listen on the correct IP"
+    echo "bind-address=${OPENSHIFT_MYSQL_DB_HOST}" >> $mysql_cnf
+    ${OPENSHIFT_MYSQL_DIR}/bin/control restart
+fi
+
+sleep 1
 # Confirm database exists, if not create it
-if ! /usr/bin/mysql -u "$OPENSHIFT_MYSQL_DB_USERNAME" --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -h "$OPENSHIFT_MYSQL_DB_HOST" -P "$OPENSHIFT_MYSQL_DB_PORT" -e "show tables;" $OPENSHIFT_APP_NAME > /dev/null 2>&1
+if ! $mysql_cmd -u "$OPENSHIFT_MYSQL_DB_USERNAME" --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -h "$OPENSHIFT_MYSQL_DB_HOST" -P "$OPENSHIFT_MYSQL_DB_PORT" -e "show tables;" $OPENSHIFT_APP_NAME > /dev/null 2>&1
 then
     echo
     echo "Database not found!  Creating and importing"
     echo
-    /usr/bin/mysqladmin -u "$OPENSHIFT_MYSQL_DB_USERNAME" --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -h "$OPENSHIFT_MYSQL_DB_HOST" -P "$OPENSHIFT_MYSQL_DB_PORT" create "$OPENSHIFT_APP_NAME"
-    /usr/bin/mysql -u "$OPENSHIFT_MYSQL_DB_USERNAME" --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -h "$OPENSHIFT_MYSQL_DB_HOST" -P "$OPENSHIFT_MYSQL_DB_PORT" $OPENSHIFT_APP_NAME < "$OPENSHIFT_REPO_DIR/.openshift/action_hooks/openshift.sql"
+    $mysql_cmd -u "$OPENSHIFT_MYSQL_DB_USERNAME" --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -h "$OPENSHIFT_MYSQL_DB_HOST" -P "$OPENSHIFT_MYSQL_DB_PORT" -e "create database ${OPENSHIFT_APP_NAME};"
+    $mysql_cmd -u "$OPENSHIFT_MYSQL_DB_USERNAME" --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -h "$OPENSHIFT_MYSQL_DB_HOST" -P "$OPENSHIFT_MYSQL_DB_PORT" $OPENSHIFT_APP_NAME < "$OPENSHIFT_REPO_DIR/.openshift/action_hooks/openshift.sql"
     echo
     echo "done."
     echo "=================================================="
@@ -63,7 +99,7 @@ then
 fi
 
 upgrade_key=$(cat ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key)
-secret_key=(cat ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key)
+secret_key=$(cat ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key)
 
 if [[ ! -d ${OPENSHIFT_DATA_DIR}/images ]]
 then
@@ -77,10 +113,13 @@ then
     mkdir ${OPENSHIFT_REPO_DIR}/php
 fi
 
-cp -r ${OPENSHIFT_DATA_DIR}/mediawiki-${version}/* ${OPENSHIFT_REPO_DIR}/php/
+cp -al ${OPENSHIFT_DATA_DIR}/mediawiki-${version}/* ${OPENSHIFT_REPO_DIR}/php/
 cp -r ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/LocalSettings.php ${OPENSHIFT_REPO_DIR}/php/
 
 sed -i "s/MEDIAWIKI_UPGRADE_KEY/${upgrade_key}/;s/MEDIAWIKI_SECRET_KEY/${secret_key}/" ${OPENSHIFT_REPO_DIR}/php/LocalSettings.php
 
-rm -rf ${OPENSHIFT_REPO_DIR}/images
-ln -s ${OPENSHIFT_DATA_DIR}/images ${OPENSHIFT_REPO_DIR}/images
+rm -rf ${OPENSHIFT_REPO_DIR}/php/images
+ln -s ${OPENSHIFT_DATA_DIR}/images ${OPENSHIFT_REPO_DIR}/php/images
+
+pushd ${OPENSHIFT_REPO_DIR}/php/maintenance
+php update.php --quick

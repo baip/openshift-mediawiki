@@ -55,10 +55,10 @@ $wgEmailAuthentication = false;
 
 ## Database settings
 $wgDBtype           = "mysql";
-$wgDBserver         = $_ENV['OPENSHIFT_MYSQL_DB_HOST'].":".$_ENV['OPENSHIFT_MYSQL_DB_PORT'];
-$wgDBname           = $_ENV['OPENSHIFT_APP_NAME'];
-$wgDBuser           = $_ENV['OPENSHIFT_MYSQL_DB_USERNAME'];
-$wgDBpassword       = $_ENV['OPENSHIFT_MYSQL_DB_PASSWORD'];
+$wgDBserver         = getenv('OPENSHIFT_MYSQL_DB_HOST').":".getenv('OPENSHIFT_MYSQL_DB_PORT');
+$wgDBname           = getenv('OPENSHIFT_APP_NAME');
+$wgDBuser           = getenv('OPENSHIFT_MYSQL_DB_USERNAME');
+$wgDBpassword       = getenv('OPENSHIFT_MYSQL_DB_PASSWORD');
 
 # MySQL specific settings
 $wgDBprefix = "";

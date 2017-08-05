@@ -3,3 +3,9 @@
 # available.  Otherwise it will execute while your application is stopped
 # before the deploy step.  This script gets executed directly, so it
 # could be python, php, ruby, etc.
+
+set -e
+
+# Build PHP extra's
+# Update conf/ini files and install pecl extensions
+${OPENSHIFT_PHP_DIR}/bin/control build
