@@ -12,14 +12,15 @@
 
 # Protect against web entry
 if ( !defined( 'MEDIAWIKI' ) ) {
-	exit;
+    exit;
 }
 
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
 
-$wgSitename = "MediaWiki";
-$wgMetaNamespace = "MediaWiki";
+$wgSitename = getenv('SITE_NAME');
+if (! $wgSitename) $wgSitename = "MediaWiki";
+$wgMetaNamespace = getenv('OPENSHIFT_APP_NAME');
 
 ## The URL base path to the directory containing the wiki;
 ## defaults for all runtime URL paths are based off of this.
@@ -46,8 +47,10 @@ $wgLogo = "$wgResourceBasePath/resources/assets/images/logo.png";
 $wgEnableEmail = true;
 $wgEnableUserEmail = true; # UPO
 
-$wgEmergencyContact = "admin@example.com";
-$wgPasswordSender = "admin@example.com";
+$admin_email = getenv('ADMIN_EMAIL');
+if (! $admin_email) $admin_email = 'admin@example.com';
+$wgEmergencyContact = $admin_email;
+$wgPasswordSender = $admin_email;
 
 $wgEnotifUserTalk = true; # UPO
 $wgEnotifWatchlist = true; # UPO
@@ -55,7 +58,11 @@ $wgEmailAuthentication = false;
 
 ## Database settings
 $wgDBtype           = "mysql";
-$wgDBserver         = getenv('OPENSHIFT_MYSQL_DB_HOST').":".getenv('OPENSHIFT_MYSQL_DB_PORT');
+$db_host = getenv('OPENSHIFT_MYSQL_DB_HOST');
+if (! $db_host) $db_host = getenv(strtoupper(getenv('OPENSHIFT_MYSQL_SERVICE_NAME')) . '_SERVICE_HOST');
+$db_port = getenv('OPENSHIFT_MYSQL_DB_PORT');
+if (! $db_port) $db_port = getenv(strtoupper(getenv('OPENSHIFT_MYSQL_SERVICE_NAME')) . '_SERVICE_PORT');
+$wgDBserver         = $db_host.":".$db_port;
 $wgDBname           = getenv('OPENSHIFT_APP_NAME');
 $wgDBuser           = getenv('OPENSHIFT_MYSQL_DB_USERNAME');
 $wgDBpassword       = getenv('OPENSHIFT_MYSQL_DB_PASSWORD');
@@ -175,9 +182,10 @@ require_once "$IP/extensions/OpenshiftMediawikiIpFix/OpenshiftMediawikiIpFix.php
 ##
 
 #analytics
-require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
-// Replace xxxxxxx-x with YOUR GoogleAnalytics UA number
-$wgGoogleAnalyticsAccount = 'UA-xxxxxxxx-x';
+if (getenv('GOOGLE_ANALYTICS_ACCOUNT')) {
+    require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
+    $wgGoogleAnalyticsAccount = getenv('GOOGLE_ANALYTICS_ACCOUNT');
+}
 // Add HTML code for any additional web analytics (can be used alone or with $wgGoogleAnalyticsAccount)
 //$wgGoogleAnalyticsOtherCode = '<script type="text/javascript" src="https://analytics.example.com/tracking.js"></script>';
 
@@ -197,7 +205,7 @@ $wgGroupPermissions['bot']['noanalytics'] = true;
 
 # ConfirmAccount
 require_once "$IP/extensions/ConfirmAccount/ConfirmAccount.php";
-$wgConfirmAccountContact = 'admin@example.com';
+$wgConfirmAccountContact = $admin_email;
 $wgMakeUserPageFromBio = false;
 $wgAutoWelcomeNewUsers = false;
 $wgConfirmAccountRequestFormItems = array(
@@ -212,11 +220,16 @@ $wgConfirmAccountRequestFormItems = array(
 );
 
 # Google Login
-require_once "$IP/extensions/GoogleLogin/GoogleLogin.php";
-$wgGLSecret = 'xxxxxxxxxxxxxxxxxxxxxxxx';
-$wgGLAppId = '12345678901-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com';
+$wgGLSecret = getenv('GOOGLE_LOGIN_SECRET');
+$wgGLAppId = getenv('GOOGLE_LOGIN_APP_ID');
+if ($wgGLSecret && $wgGLAppId) {
+    require_once "$IP/extensions/GoogleLogin/GoogleLogin.php";
+}
 #$wgGLReplaceMWLogin = true;
-$wgGLAllowedDomains = array( 'example.com' );
+$allowed_domain = getenv('GOOGLE_LOGIN_DOMAIN');
+if ($allowed_domain) {
+    $wgGLAllowedDomains = array( $allowed_domain );
+}
 $wgGLShowRight = true;
 
 $wgWhitelistRead = array( 'Special:RequestAccount', 'Special:GoogleLogin' );

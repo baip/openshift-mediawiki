@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+
+version=1.29.0
+
+shopt -s dotglob
+echo "---> Installing application source..."
+mv /tmp/src/* ./
+
+libs/install-mediawiki ${version}
+cp -al mediawiki-${version}/* php/
+rm -rf mediawiki-${version}
+
+cp -r .openshift/action_hooks/LocalSettings.php php/
+source libs/generate-secret
+sed -i "s/MEDIAWIKI_UPGRADE_KEY/${upgrade_key}/;s/MEDIAWIKI_SECRET_KEY/${secret_key}/" php/LocalSettings.php
+
+# Fix source directory permissions
+fix-permissions ./

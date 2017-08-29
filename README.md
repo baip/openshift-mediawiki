@@ -50,7 +50,27 @@ Google analytics extension repo/code can be found here -> https://github.com/neg
 * uploads moved to data directory. Uploads are now persistent.
 
 
-Quickstart
+Quickstart v3
+==========
+
+1. Sign up at https://www.openshift.com and create a new project
+2. On the web console, "Add to Project" -> "Browse Catalog" -> "Data Stores" ->
+   "MySQL (Persistent)". Note "Database Service Name" and "MySQL Database Name".
+3. "Add to Project" -> "Browse Catalog" -> "PHP 7.0" and fill in this URL for
+   this git repository
+4. Click "advanced options", under "Deployment Configuration", "Add Environment
+   Variable" as needed: `SITE_NAME`, `ADMIN_EMAIL`, `GOOGLE_ANALYTICS_ACCOUNT`,
+   `GOOGLE_LOGIN_SECRET`, `GOOGLE_LOGIN_APP_ID`, `GOOGLE_LOGIN_DOMAIN`
+5. Also set the following variables to: `OPENSHIFT_MYSQL_SERVICE_NAME="Database
+   Service Name"`, `OPENSHIFT_APP_NAME="MySQL Database Name"`
+5. "Add Environment Variable Using a Config Map or Secret", using the secret
+   created by the database (e.g., "mysql") to set:
+   `OPENSHIFT_MYSQL_DB_USERNAME`, `OPENSHIFT_MYSQL_DB_PASSWORD`
+6. To automatically trigger a new build, follow the instructions
+   [here](https://docs.openshift.com/online/getting_started/basic_walkthrough.html#bw-configuring-automated-builds)
+
+
+Quickstart v2
 ==========
 
 1. Create an account at https://www.openshift.com

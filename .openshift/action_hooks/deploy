@@ -6,7 +6,6 @@
 
 set -e
 
-base_version=1.29
 version=1.29.0
 
 if [ -z $OPENSHIFT_MYSQL_DB_HOST ]
@@ -24,24 +23,7 @@ if [[ ! -d ${OPENSHIFT_DATA_DIR}/mediawiki-${version} ]]
 then
     pushd ${OPENSHIFT_DATA_DIR}
 
-    wget http://releases.wikimedia.org/mediawiki/${base_version}/mediawiki-${version}.tar.gz
-    tar xf mediawiki-${version}.tar.gz
-    rm -f mediawiki-${version}.tar.gz
-
-    cd mediawiki-${version}/extensions
-
-    for pkg in https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_29-6766ffc.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_29-193339c.tar.gz https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_29-1e04d8c.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_29-7958904.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_29-de5f67d.tar.gz; do
-        \wget $pkg
-    done
-
-    for pkg in *.tar.gz; do
-        \tar xf $pkg
-        \rm -f $pkg
-    done
-
-    \wget https://github.com/deimosfr/mediawiki_DeleteHistory/archive/master.zip && \unzip master.zip
-    \rm -f master.zip
-    \mv mediawiki_DeleteHistory-master DeleteHistory
+    ${OPENSHIFT_REPO_DIR}/libs/install-mediawiki ${version}
 
     popd - > /dev/null
 fi
@@ -85,21 +67,24 @@ else
     echo "Database found, skipping build"
 fi
 
-if [[ ! -f ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key ]]
+source ${OPENSHIFT_REPO_DIR}/libs/generate-secret
+
+if [[ -f ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key ]]
 then
-    echo $(date +%s | sha256sum | base64 | head -c 16 ; echo) > ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key
+    upgrade_key=$(cat ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key)
+else
+    echo ${upgrade_key} > ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key
     echo "=================================================="
     echo "  Mediawiki Upgrade Key: $(cat $OPENSHIFT_DATA_DIR/mediawiki_upgrade_key)"
     echo "=================================================="
 fi
 
-if [[ ! -f ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key ]]
+if [[ -f ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key ]]
 then
-    echo $(date +%s | sha256sum | base64 | head -c 64 ; echo) > ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key
+    secret_key=$(cat ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key)
+else
+    echo ${secret_key} > ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key
 fi
-
-upgrade_key=$(cat ${OPENSHIFT_DATA_DIR}/mediawiki_upgrade_key)
-secret_key=$(cat ${OPENSHIFT_DATA_DIR}/mediawiki_secret_key)
 
 if [[ ! -d ${OPENSHIFT_DATA_DIR}/images ]]
 then
