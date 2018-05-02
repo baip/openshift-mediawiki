@@ -51,6 +51,14 @@ $admin_email = getenv('ADMIN_EMAIL');
 if (! $admin_email) $admin_email = 'admin@example.com';
 $wgEmergencyContact = $admin_email;
 $wgPasswordSender = $admin_email;
+$wgSMTP = array(
+    'host' => 'ssl://' . getenv('SMTP_SERVER'),
+    'IDHost' =>  getenv('SMTP_DOMAIN'),
+    'port' =>  getenv('SMTP_PORT'),
+    'auth' => true,
+    'username' =>  getenv('SMTP_USER_NAME'),
+    'password' => getenv('SMTP_PASSWORD')
+);
 
 $wgEnotifUserTalk = true; # UPO
 $wgEnotifWatchlist = true; # UPO
