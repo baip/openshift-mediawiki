@@ -15,19 +15,46 @@ if ( !defined( 'MEDIAWIKI' ) ) {
     exit;
 }
 
-## Uncomment this to disable output compression
-# $wgDisableOutputCompression = true;
+if ( defined( 'MW_DB' ) ) {
+    // Command-line mode and maintenance scripts (e.g. update.php)
+    $wikiname = MW_DB;
+} else {
+    // Web server
+    $resource = strtolower($_SERVER['REQUEST_URI']);
+    if ( preg_match( '/^\/([^\/]*)\//', $resource, $matches ) ) {
+        $wikiname = $matches[1];
+    }
 
-$wgSitename = getenv('SITE_NAME');
-if (! $wgSitename) $wgSitename = "MediaWiki";
-$wgMetaNamespace = getenv('OPENSHIFT_APP_NAME');
+    if ( strlen($wikiname) === 0 ) {
+        $wikiname = 'meta';
+    }
+}
 
 ## The URL base path to the directory containing the wiki;
 ## defaults for all runtime URL paths are based off of this.
 ## For more information on customizing the URLs
 ## (like /w/index.php/Page_title to /wiki/Page_title) please see:
 ## https://www.mediawiki.org/wiki/Manual:Short_URL
-$wgScriptPath = "";
+if ( $wikiname === 'meta' ) {
+    $wgDBname = getenv('OPENSHIFT_APP_NAME');
+} else {
+    $wgDBname = $wikiname . "_wiki";
+}
+
+$wgScriptPath = '/' . $wikiname;
+$wikiname = strtoupper($wikiname);
+$wgSitename = getenv($wikiname . '_SITE_NAME');
+$admin_email = getenv($wikiname . '_ADMIN_EMAIL');
+$google_analytics = getenv($wikiname . '_GOOGLE_ANALYTICS_ACCOUNT');
+$wgGLSecret = getenv($wikiname . '_GOOGLE_LOGIN_SECRET');
+$wgGLAppId = getenv($wikiname . '_GOOGLE_LOGIN_APP_ID');
+$allowed_domain = getenv($wikiname . '_GOOGLE_LOGIN_DOMAIN');
+
+## Uncomment this to disable output compression
+# $wgDisableOutputCompression = true;
+
+if (! $wgSitename) $wgSitename = "MediaWiki";
+$wgMetaNamespace = getenv('OPENSHIFT_APP_NAME');
 
 $wgScriptExtension = ".php";
 
@@ -48,7 +75,6 @@ $wgLogo = "$wgResourceBasePath/resources/assets/images/logo.png";
 $wgEnableEmail = true;
 $wgEnableUserEmail = true; # UPO
 
-$admin_email = getenv('ADMIN_EMAIL');
 if (! $admin_email) $admin_email = 'admin@example.com';
 $wgEmergencyContact = $admin_email;
 $wgPasswordSender = $admin_email;
@@ -72,7 +98,6 @@ if (! $db_host) $db_host = getenv(strtoupper(getenv('OPENSHIFT_MYSQL_SERVICE_NAM
 $db_port = getenv('OPENSHIFT_MYSQL_DB_PORT');
 if (! $db_port) $db_port = getenv(strtoupper(getenv('OPENSHIFT_MYSQL_SERVICE_NAME')) . '_SERVICE_PORT');
 $wgDBserver         = $db_host.":".$db_port;
-$wgDBname           = getenv('OPENSHIFT_APP_NAME');
 $wgDBuser           = getenv('OPENSHIFT_MYSQL_DB_USERNAME');
 $wgDBpassword       = getenv('OPENSHIFT_MYSQL_DB_PASSWORD');
 
@@ -191,9 +216,9 @@ require_once "$IP/extensions/OpenshiftMediawikiIpFix/OpenshiftMediawikiIpFix.php
 ##
 
 #analytics
-if (getenv('GOOGLE_ANALYTICS_ACCOUNT')) {
+if ($google_analytics) {
     require_once "$IP/extensions/googleAnalytics/googleAnalytics.php";
-    $wgGoogleAnalyticsAccount = getenv('GOOGLE_ANALYTICS_ACCOUNT');
+    $wgGoogleAnalyticsAccount = $google_analytics;
 }
 // Add HTML code for any additional web analytics (can be used alone or with $wgGoogleAnalyticsAccount)
 //$wgGoogleAnalyticsOtherCode = '<script type="text/javascript" src="https://analytics.example.com/tracking.js"></script>';
@@ -229,13 +254,10 @@ $wgConfirmAccountRequestFormItems = array(
 );
 
 # Google Login
-$wgGLSecret = getenv('GOOGLE_LOGIN_SECRET');
-$wgGLAppId = getenv('GOOGLE_LOGIN_APP_ID');
 if ($wgGLSecret && $wgGLAppId) {
     require_once "$IP/extensions/GoogleLogin/GoogleLogin.php";
 }
 #$wgGLReplaceMWLogin = true;
-$allowed_domain = getenv('GOOGLE_LOGIN_DOMAIN');
 if ($allowed_domain) {
     $wgGLAllowedDomains = array( $allowed_domain );
 }

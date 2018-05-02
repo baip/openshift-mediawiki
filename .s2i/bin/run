@@ -18,13 +18,24 @@ echo "---> DATABASE_PORT: ${db_port} ..."
 
 pushd php
 
-echo "---> Creating database ..."
-mv LocalSettings.php LocalSettings.php.bak
-php maintenance/install.php --dbtype mysql --dbserver $db_host --dbport $db_port --dbuser $OPENSHIFT_MYSQL_DB_USERNAME --dbpass $OPENSHIFT_MYSQL_DB_PASSWORD --dbname $OPENSHIFT_APP_NAME --confpath /tmp --pass 'admin123' 'Temporary Wiki' admin
-mv LocalSettings.php.bak LocalSettings.php
+regex='^(.+)_SITE_NAME$';
+while read var; do
+  if [[ $var =~ $regex ]]; then
+    wikiname="$(echo ${BASH_REMATCH[1]} | tr '[:upper:]' '[:lower:]')"
+    ln -sf . $wikiname
 
-echo "---> Updating database ..."
-php maintenance/update.php --quick
+    db_name="${wikiname}_wiki"
+    [ "$wikiname" == 'meta' ] && db_name="$OPENSHIFT_APP_NAME"
+
+    echo "---> [$wikiname] Creating database $db_name ..."
+    mv LocalSettings.php LocalSettings.php.bak
+    php maintenance/install.php --dbtype mysql --dbserver $db_host --dbport $db_port --dbuser $OPENSHIFT_MYSQL_DB_USERNAME --dbpass $OPENSHIFT_MYSQL_DB_PASSWORD --dbname $db_name --confpath /tmp --pass 'admin123' 'Temporary Wiki' admin
+    mv LocalSettings.php.bak LocalSettings.php
+
+    echo "---> [$wikiname] Updating database $db_name ..."
+    php maintenance/update.php --quick --wiki $wikiname
+  fi
+done < <(compgen -A variable)
 
 popd
 
