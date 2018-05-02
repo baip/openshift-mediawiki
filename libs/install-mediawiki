@@ -10,7 +10,7 @@ rm -f mediawiki-${version}.tar.gz
 
 cd mediawiki-${version}/extensions
 
-for pkg in https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_29-6766ffc.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_29-193339c.tar.gz https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_29-1e04d8c.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_29-7958904.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_29-de5f67d.tar.gz; do
+for pkg in https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_29-54d20c3.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_29-193339c.tar.gz https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_29-1e04d8c.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_29-7958904.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_29-de5f67d.tar.gz; do
     \wget $pkg
 done
 
