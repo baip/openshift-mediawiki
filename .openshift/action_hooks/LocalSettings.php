@@ -37,6 +37,7 @@ $wgScriptExtension = ".php";
 ## The relative URL path to the skins directory
 $wgStylePath = "$wgScriptPath/skins";
 $wgResourceBasePath = $wgScriptPath;
+$wgArticlePath = $wgScriptPath . '/$1';
 
 ## The relative URL path to the logo.  Make sure you change this from the default,
 ## or else you'll overwrite your logo when you upgrade!
