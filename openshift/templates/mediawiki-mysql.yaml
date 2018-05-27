@@ -1,0 +1,433 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: mediawiki-mysql-persistent
+  annotations:
+    openshift.io/display-name: "MediaWiki + MySQL (Persistent)"
+    description: "A MediaWiki deployment with a MySQL database. For more information, see https://github.com/baip/openshift-mediawiki."
+    tags: "quickstart,php,mediawiki"
+    iconClass: "icon-mediawiki"
+message: "The following service(s) have been created in your project: ${NAME}, ${DATABASE_SERVICE_NAME}.\n\nFor more information, see https://github.com/baip/openshift-mediawiki."
+objects:
+- apiVersion: v1
+  stringData:
+    database-name: "${DATABASE_NAME}"
+    database-password: "${DATABASE_PASSWORD}"
+    database-root-password: "${DATABASE_ROOT_PASSWORD}"
+    database-user: "${DATABASE_USER}"
+    smtp-domain: "${SMTP_DOMAIN}"
+    smtp-password: "${SMTP_PASSWORD}"
+    smtp-port: "${SMTP_PORT}"
+    smtp-server: "${SMTP_SERVER}"
+    smtp-user: "${SMTP_USER_NAME}"
+  kind: Secret
+  metadata:
+    labels:
+      app: mediawiki-mysql-persistent
+      template: mediawiki-mysql-persistent-template
+    name: "${NAME}"
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    labels:
+      app: "mediawiki-mysql-persistent"
+      template: "mediawiki-mysql-persistent-template"
+    name: "${DATABASE_SERVICE_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "${VOLUME_CAPACITY}"
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: "${NAME}"
+    name: "${NAME}"
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${NAME}:latest"
+    runPolicy: Serial
+    source:
+      git:
+        ref: "${SOURCE_REPOSITORY_REF}"
+        uri: "${SOURCE_REPOSITORY_URL}"
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: php:7.0
+          namespace: "${NAMESPACE}"
+      type: Source
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+    - github:
+        secret: "${GITHUB_WEBHOOK_SECRET}"
+      type: GitHub
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: "${NAME}"
+    name: "${NAME}"
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: "mediawiki-mysql-persistent"
+      template: "mediawiki-mysql-persistent-template"
+    name: "${NAME}"
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: "${NAME}"
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: "${NAME}"
+          deploymentconfig: "${NAME}"
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_MYSQL_SERVICE_NAME
+            value: "${DATABASE_SERVICE_NAME}"
+          - name: OPENSHIFT_APP_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: "${NAME}"
+          - name: OPENSHIFT_MYSQL_DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: "${NAME}"
+          - name: OPENSHIFT_MYSQL_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: "${NAME}"
+          - name: META_SITE_NAME
+            value: "${SITE_NAME}"
+          - name: META_ADMIN_EMAIL
+            value: "${ADMIN_EMAIL}"
+          - name: SMTP_DOMAIN
+            valueFrom:
+              secretKeyRef:
+                key: smtp-domain
+                name: "${NAME}"
+          - name: SMTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: smtp-password
+                name: "${NAME}"
+          - name: SMTP_PORT
+            valueFrom:
+              secretKeyRef:
+                key: smtp-port
+                name: "${NAME}"
+          - name: SMTP_SERVER
+            valueFrom:
+              secretKeyRef:
+                key: smtp-server
+                name: "${NAME}"
+          - name: SMTP_USER_NAME
+            valueFrom:
+              secretKeyRef:
+                key: smtp-user
+                name: "${NAME}"
+          envFrom:
+          - secretRef:
+              name: "${NAME}"
+          imagePullPolicy: Always
+          name: mediawiki-mysql-persistent
+          image: "${NAME}"
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              memory: "${MEMORY_PHP_LIMIT}"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - mediawiki-mysql-persistent
+        from:
+          kind: ImageStreamTag
+          name: "${NAME}:latest"
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    labels:
+      app: "mediawiki-mysql-persistent"
+      template: "mediawiki-mysql-persistent-template"
+    name: "${DATABASE_SERVICE_NAME}"
+  spec:
+    replicas: 1
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: "${DATABASE_SERVICE_NAME}"
+      spec:
+        containers:
+        - env:
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: "${NAME}"
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: "${NAME}"
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-root-password
+                name: "${NAME}"
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: "${NAME}"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3306
+            timeoutSeconds: 1
+          name: mysql
+          image: mysql
+          ports:
+          - containerPort: 3306
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -i
+              - -c
+              - MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE
+                -e 'SELECT 1'
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: "${MEMORY_MYSQL_LIMIT}"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/mysql/data
+            name: "${DATABASE_SERVICE_NAME}-data"
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: "${DATABASE_SERVICE_NAME}-data"
+          persistentVolumeClaim:
+            claimName: "${DATABASE_SERVICE_NAME}"
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - mysql
+        from:
+          kind: ImageStreamTag
+          name: mysql:5.7
+          namespace: "${NAMESPACE}"
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: "mediawiki-mysql-persistent"
+      template: "mediawiki-mysql-persistent-template"
+    name: "${NAME}"
+  spec:
+    ports:
+    - name: web
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      deploymentconfig: "${NAME}"
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: mysql://{.spec.clusterIP}:{.spec.ports[?(.name=="mysql")].port}
+    labels:
+      app: "mediawiki-mysql-persistent"
+      template: "mediawiki-mysql-persistent-template"
+    name: "${DATABASE_SERVICE_NAME}"
+  spec:
+    ports:
+    - name: mysql
+      port: 3306
+      protocol: TCP
+      targetPort: 3306
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: "${NAME}"
+    name: "${NAME}"
+  spec:
+    host:
+    port:
+      targetPort: web
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: "${NAME}"
+      weight: 100
+    wildcardPolicy: None
+parameters:
+  - name: "NAME"
+    displayName: "Name"
+    description: "The name assigned to all of the frontend objects defined in this template."
+    required: true
+    value: "mediawiki"
+  - name: "SITE_NAME"
+    displayName: "Site name"
+    description: "Name of the wiki."
+    required: true
+    value: "My Wiki"
+  - name: "ADMIN_EMAIL"
+    displayName: "Admin email"
+    description: "Email for the admin user."
+    required: true
+    value: "mediawiki@example.com"
+  - name: "SMTP_DOMAIN"
+    displayName: "System SMTP_DOMAIN"
+    description: "Domain for outbound emails."
+    value: "example.com"
+    required: true
+  - name: "SMTP_USER_NAME"
+    displayName: "System SMTP_USER_NAME"
+    description: "SMTP user name."
+    value: "mediawiki@example.com"
+    required: true
+  - name: "SMTP_PASSWORD"
+    displayName: "System SMTP_PASSWORD"
+    description: "SMTP password."
+    value: "somepassword"
+    required: true
+  - name: "SMTP_SERVER"
+    displayName: "System SMTP_SERVER"
+    description: "SMTP server address."
+    value: "smtp.example.com"
+    required: true
+  - name: "SMTP_PORT"
+    displayName: "System SMTP_PORT"
+    description: "SMTP server port."
+    value: "587"
+    required: true
+  - name: "SOURCE_REPOSITORY_URL"
+    displayName: "Git Repository URL"
+    description: "The URL of the repository with your application source code."
+    required: true
+    value: "https://github.com/baip/openshift-mediawiki.git"
+  - name: "SOURCE_REPOSITORY_REF"
+    displayName: "Git Reference"
+    description: "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+    value: "master"
+  - name: "GITHUB_WEBHOOK_SECRET"
+    displayName: "GitHub Webhook Secret"
+    description: "A secret string used to configure the GitHub webhook."
+    generate: "expression"
+    from: "[a-zA-Z0-9]{40}"
+  - name: "NAMESPACE"
+    displayName: "Namespace"
+    description: "The OpenShift Namespace where the ImageStream resides."
+    required: true
+    value: "openshift"
+  - name: "DATABASE_SERVICE_NAME"
+    displayName: "Database Service Name"
+    value: "mysql"
+    required: true
+  - name: "MEMORY_PHP_LIMIT"
+    displayName: "Memory Limit (PHP)"
+    description: "Maximum amount of memory the PHP container can use."
+    value: "512Mi"
+    required: true
+  - name: "MEMORY_MYSQL_LIMIT"
+    displayName: "Memory Limit (MySQL)"
+    description: "Maximum amount of memory the MySQL container can use."
+    value: "512Mi"
+    required: true
+  - name: "VOLUME_CAPACITY"
+    displayName: "Volume Capacity"
+    description: "Volume space available for data, e.g. 512Mi, 2Gi"
+    value: "1Gi"
+    required: true
+  - name: "DATABASE_NAME"
+    displayName: "Database Name"
+    generate: "expression"
+    from: "[a-zA-Z0-9]{6}"
+  - name: "DATABASE_USER"
+    displayName: "Database User"
+    generate: "expression"
+    from: "[a-zA-Z0-9]{6}"
+  - name: "DATABASE_PASSWORD"
+    displayName: "Database Password"
+    generate: "expression"
+    from: "[a-zA-Z0-9]{16}"
+  - name: "DATABASE_ROOT_PASSWORD"
+    displayName: "Database Root Password"
+    generate: "expression"
+    from: "[a-zA-Z0-9]{16}"

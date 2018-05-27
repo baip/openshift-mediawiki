@@ -1,72 +1,59 @@
 OpenShift - MediaWiki
 ========
 
-QuickStart MediaWiki 1.29.0 on OpenShift.
+QuickStart MediaWiki 1.29.0 on OpenShift. It supports multi-site [Wiki
+family](https://www.mediawiki.org/wiki/Manual:Wiki_family).
 
-Follow the steps below to build on OpenShift.
-
-PreInstalled Plugins:
+* PreInstalled Plugins:
 
 Cite,
 CiteThisPage,
 ConfirmAccount,
 Gadgets,
+GoogleAnalytics,
 GoogleLogin,
 ImageMap,
 InputBox,
 Interwiki,
 LocalisationUpdate,
+MobileFrontend,
 Nuke,
 ParserFunctions,
 PdfHandler,
 Poem,
 Renameuser,
 SpamBlacklist,
+Scribunto,
 SyntaxHighlight_GeSHi,
 TitleBlacklist,
 UserMerge,
 WikiEditor,
 Google Analytics.
 
-
-Whats new
-==========
-
-8/10/2015
-
-Openshift uses HAProxy for loadbalancing in front of the servers.
-This causes mediawiki to show the same internal proxy ip for all users.
-I've written a small plugin to fix this.
-Can be found under /extensions/OpenshiftMediawikiIpFix
-
-30/09/2015
-
-Plugins:
-
-1. Scribunto (with standalone lua, enables you to do in wiki scripting and use popular features like infobox)
-2. mobile frontend
-3. google analytics (edit LocalSettings.php to set your google analytics account. edit line 165.)
-Google analytics extension repo/code can be found here -> https://github.com/negati-ve/mediawiki-google-analytics-extension
-* uploads moved to data directory. Uploads are now persistent.
+* Default Admin Username: `admin`, Default Password: `admin123`.
 
 
 Quickstart v3
 ==========
 
 1. Sign up at https://www.openshift.com and create a new project
-2. On the web console, "Add to Project" -> "Browse Catalog" -> "Data Stores" ->
-   "MySQL (Persistent)". Note "Database Service Name" and "MySQL Database Name".
-3. "Add to Project" -> "Browse Catalog" -> "PHP 7.0" and fill in this URL for
-   this git repository
-4. Click "advanced options", under "Deployment Configuration", "Add Environment
-   Variable" as needed: `SITE_NAME`, `ADMIN_EMAIL`, `GOOGLE_ANALYTICS_ACCOUNT`,
-   `GOOGLE_LOGIN_SECRET`, `GOOGLE_LOGIN_APP_ID`, `GOOGLE_LOGIN_DOMAIN`
-5. Also set the following variables to: `OPENSHIFT_MYSQL_SERVICE_NAME="Database
-   Service Name"`, `OPENSHIFT_APP_NAME="MySQL Database Name"`
-5. "Add Environment Variable Using a Config Map or Secret", using the secret
-   created by the database (e.g., "mysql") to set:
-   `OPENSHIFT_MYSQL_DB_USERNAME`, `OPENSHIFT_MYSQL_DB_PASSWORD`
-6. To automatically trigger a new build, follow the instructions
+
+2. On the web console, click "Add to Project" -> "Import YAML/JSON", and paste the contents of the YAML file [here](https://raw.githubusercontent.com/baip/openshift-mediawiki/master/openshift/templates/mediawiki-mysql.yaml). Or alternatively, use `oc` command line:
+    ~~~
+    oc new-app -f https://raw.githubusercontent.com/baip/openshift-mediawiki/master/openshift/templates/mediawiki-mysql.yaml
+    ~~~
+
+The default wiki can be accessed at `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/` or `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/meta/`.
+
+3. After the app is created, you can further customize it by going to "Applications" -> "Deployments" -> "Environment" on the web console. To host another wiki called ABC, you need:
+
+* `ABC_SITE_NAME` and `ABC_ADMIN_EMAIL` (required)
+* `ABC_GOOGLE_ANALYTICS_ACCOUNT` (optional): if you use [Google Analytics](https://www.google.com/analytics/)
+* `ABC_GOOGLE_LOGIN_SECRET` and `ABC_GOOGLE_LOGIN_APP_ID` (optional): follow the instructions for [Extension:GoogleLogin](https://www.mediawiki.org/wiki/Extension:GoogleLogin#Settings_in_Google_Developer_Console) to obtain the credentials for setting up login with Google.
+
+The new wiki can be accessed at `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/abc/`.
+
+4. To automatically trigger a new build, follow the instructions
    [here](https://docs.openshift.com/online/getting_started/basic_walkthrough.html#bw-configuring-automated-builds)
 
 
@@ -74,24 +61,26 @@ Quickstart v2
 ==========
 
 1. Create an account at https://www.openshift.com
-2. Create a php application with mysql:
+
+2. Create a PHP application with mysql:
     ```
     $ rhc app create mediawiki php-5.4 mysql-5.5
     ```
+
 3. Add this upstream mediawiki repo
     ```
     $ cd mediawiki
     $ git remote add upstream -m master https://github.com/negati-ve/openshift-mediawiki.git
     $ git pull -s recursive -X theirs upstream master
     ```
+
 4. Then push the repo upstream
     ```
     $ git push
     ```
+
 5. That's it, you can now checkout your application at:
     http://mediawiki-$yourlogin.rhcloud.com
-6. Default Admin Username: admin
-   Default Password: admin123
 
 
 Updates
