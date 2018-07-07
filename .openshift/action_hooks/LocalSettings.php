@@ -263,16 +263,12 @@ if ($allowed_domain) {
 }
 $wgGLShowRight = true;
 
-$wgWhitelistRead = array( 'Special:RequestAccount', 'Special:GoogleLogin' );
+$wgWhitelistRead = array( 'Special:RequestAccount', 'Special:GoogleLoginReturn' );
 
 # UserMerge
 wfLoadExtension( 'UserMerge' );
 // By default nobody can use this function, enable for bureaucrat?
 $wgGroupPermissions['bureaucrat']['usermerge'] = true;
-
-# DeleteHistory
-$wgGroupPermissions['sysop']['DeleteHistory'] = true;
-require_once("$IP/extensions/DeleteHistory/DeleteHistory.php");
 
 #Add filetypes uploadable
 $wgFileExtensions = array_merge($wgFileExtensions, array('svg','tar','gz','tar.gz','tgz','bz2','tar.bz2','tbz','Z','tar.Z','txt','tex','pdf','pptx','ppt','docx','doc','xlsx','xls','f','F','for','FOR','fpp','FPP','f90','F90','f95','F95','c','cpp','cxx','cc','agr','gpl'));
