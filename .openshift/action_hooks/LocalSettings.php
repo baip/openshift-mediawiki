@@ -20,8 +20,11 @@ if ( defined( 'MW_DB' ) ) {
     $wikiname = MW_DB;
 } else {
     // Web server
+    $server = strtolower($_SERVER['SERVER_NAME']);
     $resource = strtolower($_SERVER['REQUEST_URI']);
-    if ( preg_match( '/^\/([^\/]*)\//', $resource, $matches ) ) {
+    if ( preg_match( '/^(.*)-wiki\./', $server, $matches ) ) {
+        $wikiname = $matches[1];
+    } elseif ( preg_match( '/^\/([^\/]*)\//', $resource, $matches ) ) {
         $wikiname = $matches[1];
     }
 
@@ -42,6 +45,8 @@ if ( $wikiname === 'meta' ) {
 }
 
 $wgScriptPath = '/' . $wikiname;
+$wgUploadDirectory = "$IP/images/$wikiname";
+$wgUploadPath = "/images/$wikiname";
 $wikiname = strtoupper($wikiname);
 $wgSitename = getenv($wikiname . '_SITE_NAME');
 $admin_email = getenv($wikiname . '_ADMIN_EMAIL');
@@ -65,6 +70,7 @@ $wgScriptExtension = ".php";
 $wgStylePath = "$wgScriptPath/skins";
 $wgResourceBasePath = $wgScriptPath;
 $wgArticlePath = $wgScriptPath . '/$1';
+$wgUsePathInfo = true;
 
 ## The relative URL path to the logo.  Make sure you change this from the default,
 ## or else you'll overwrite your logo when you upgrade!
