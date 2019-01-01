@@ -1,3 +1,6 @@
+php_value error_reporting 0
+php_flag display_errors Off
+<IfModule rewrite_module>
 RewriteEngine On
 #RewriteCond %{HTTP:X-Forwarded-Proto} !https
 #RewriteCond %{HTTPS} off
@@ -5,3 +8,4 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php?title=$1 [NC,L,QSA]
+</IfModule>
