@@ -1,8 +1,14 @@
-OpenShift - MediaWiki
+MediaWiki
 ========
 
-QuickStart MediaWiki 1.29.0 on OpenShift. It supports multi-site [Wiki
-family](https://www.mediawiki.org/wiki/Manual:Wiki_family).
+Docker images and OpenShift QuickStart for MediaWiki 1.29.0. It supports
+multi-site [Wiki family](https://www.mediawiki.org/wiki/Manual:Wiki_family).
+
+* To host another wiki called ABC (accessible at `https://your.wiki.com/abc/`), you need:
+
+1. `ABC_SITE_NAME` and `ABC_ADMIN_EMAIL` (required)
+2. `ABC_GOOGLE_ANALYTICS_ACCOUNT` (optional): if you use [Google Analytics](https://www.google.com/analytics/)
+3. `ABC_GOOGLE_LOGIN_SECRET` and `ABC_GOOGLE_LOGIN_APP_ID` (optional): follow the instructions for [Extension:GoogleLogin](https://www.mediawiki.org/wiki/Extension:GoogleLogin#Settings_in_Google_Developer_Console) to obtain the credentials for setting up login with Google.
 
 * PreInstalled Plugins:
 
@@ -33,6 +39,55 @@ Google Analytics.
 * Default Admin Username: `admin`, Default Password: `admin123`.
 
 
+Docker
+==========
+
+1. Create the following two files to provide database credentials and wiki
+   settings:
+
+`db.env`
+
+    ~~~
+    MYSQL_DATABASE=mediawiki
+    MYSQL_ROOT_PASSWORD=CHANGE_ME_ROOT_PASSWORD
+    ~~~
+
+`app.env`
+
+    ~~~
+    OPENSHIFT_MYSQL_DB_HOST=mysql
+    OPENSHIFT_MYSQL_DB_PORT=3306
+    OPENSHIFT_APP_NAME=mediawiki
+    OPENSHIFT_MYSQL_DB_USERNAME=root
+    OPENSHIFT_MYSQL_DB_PASSWORD=CHANGE_ME_ROOT_PASSWORD
+    SMTP_SERVER=smtp.CHANGE_ME.com
+    SMTP_PORT=587
+    SMTP_DOMAIN=CHANGE_ME.COM
+    SMTP_USER_NAME=SOME_USER@CHANGE_ME.COM
+    SMTP_PASSWORD=CHANGE_ME_SMTP_PASSWORD
+    META_SITE_NAME=CHANGE_ME_SITE_NAME
+    META_ADMIN_EMAIL=ADMIN@CHANGE_ME.COM
+    ~~~
+
+2. Add the following lines to `app.env`,
+
+if you use Google Analytics:
+
+    ~~~
+    META_GOOGLE_ANALYTICS_ACCOUNT=UA-1234567-8
+    ~~~
+
+if you want Login via Google:
+
+    ~~~
+    META_GOOGLE_LOGIN_SECRET=abcdefg
+    META_GOOGLE_LOGIN_APP_ID=987654321-hijklmnop.apps.googleusercontent.com
+    META_GOOGLE_LOGIN_DOMAIN=YOUR_APP_DOMAIN_IF_NEEDED
+    ~~~
+
+3. Run `docker-compose up -d`.
+
+
 Quickstart v3
 ==========
 
@@ -45,13 +100,7 @@ Quickstart v3
 
 The default wiki can be accessed at `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/` or `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/meta/`.
 
-3. After the app is created, you can further customize it by going to "Applications" -> "Deployments" -> "Environment" on the web console. To host another wiki called ABC, you need:
-
-* `ABC_SITE_NAME` and `ABC_ADMIN_EMAIL` (required)
-* `ABC_GOOGLE_ANALYTICS_ACCOUNT` (optional): if you use [Google Analytics](https://www.google.com/analytics/)
-* `ABC_GOOGLE_LOGIN_SECRET` and `ABC_GOOGLE_LOGIN_APP_ID` (optional): follow the instructions for [Extension:GoogleLogin](https://www.mediawiki.org/wiki/Extension:GoogleLogin#Settings_in_Google_Developer_Console) to obtain the credentials for setting up login with Google.
-
-The new wiki can be accessed at `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/abc/`.
+3. After the app is created, you can further customize it by going to "Applications" -> "Deployments" -> "Environment" on the web console.
 
 4. To automatically trigger a new build, follow the instructions
    [here](https://docs.openshift.com/online/getting_started/basic_walkthrough.html#bw-configuring-automated-builds)

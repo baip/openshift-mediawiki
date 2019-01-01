@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cp -r .openshift/action_hooks/LocalSettings.php ./
+source libs/generate-secret
+sed -i "s/MEDIAWIKI_UPGRADE_KEY/${upgrade_key}/;s/MEDIAWIKI_SECRET_KEY/${secret_key}/" ./LocalSettings.php

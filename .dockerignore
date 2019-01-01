@@ -1,5 +1,7 @@
-.project
+/.git/
+/.s2i/
 /app.env
 /db.env
 /images/
 /mysql/
+/openshift/

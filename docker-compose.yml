@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  mediawiki:
+    image: baip/mediawiki
+    restart: always
+    ports:
+      - 8080:80
+    env_file:
+      - app.env
+    volumes:
+      - ./images:/var/www/html/images
+      - ./php/.htaccess:/var/www/html/.htaccess
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5
+    restart: always
+    env_file:
+      - db.env
+    volumes:
+      - ./mysql:/var/lib/mysql

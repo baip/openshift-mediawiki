@@ -1,0 +1,59 @@
+#!/bin/bash
+
+if [ -n "$OPENSHIFT_MYSQL_DB_HOST" ]; then
+    db_host="$OPENSHIFT_MYSQL_DB_HOST"
+else
+    db_host="$(echo "$OPENSHIFT_MYSQL_SERVICE_NAME" | tr '[:lower:]' '[:upper:]')_SERVICE_HOST"
+    db_host=${!db_host}
+fi
+echo "---> DATABASE_HOST: ${db_host} ..."
+
+if [ -n "$OPENSHIFT_MYSQL_DB_PORT" ]; then
+    db_port="$OPENSHIFT_MYSQL_DB_PORT"
+else
+    db_port="$(echo "$OPENSHIFT_MYSQL_SERVICE_NAME" | tr '[:lower:]' '[:upper:]')_SERVICE_PORT"
+    db_port=${!db_port}
+fi
+echo "---> DATABASE_PORT: ${db_port} ..."
+
+# Need to rename LocalSettings.php temporarily to attempt database creation without giving up the ability to `docker -v` this file.
+TMPWIKI=/tmp/tmpwiki
+cp -al "$(pwd -P)" $TMPWIKI
+CWD="$PWD"
+
+pushd $TMPWIKI
+rm -f LocalSettings.php
+retry=5
+retry_wait=10
+until php maintenance/install.php --dbtype mysql --dbserver $db_host --dbport $db_port --dbuser $OPENSHIFT_MYSQL_DB_USERNAME --dbpass $OPENSHIFT_MYSQL_DB_PASSWORD --dbname $OPENSHIFT_APP_NAME --confpath /tmp --pass 'admin123' 'Temporary Wiki' admin; do
+  if [ "$retry" -eq 0 ]; then
+    echo 'Database not ready!'
+    exit -1
+  fi
+  (( retry-- ))
+  echo -n .
+  sleep $retry_wait
+done
+echo
+popd
+
+regex='^(.+)_SITE_NAME$';
+while read var; do
+  if [[ $var =~ $regex ]]; then
+    wikiname="$(echo ${BASH_REMATCH[1]} | tr '[:upper:]' '[:lower:]')"
+    ln -sf . $wikiname
+
+    db_name="${wikiname}_wiki"
+    [ "$wikiname" == 'meta' ] && db_name="$OPENSHIFT_APP_NAME"
+
+    echo "---> [$wikiname] Creating database $db_name ..."
+    pushd $TMPWIKI
+    php maintenance/install.php --dbtype mysql --dbserver $db_host --dbport $db_port --dbuser $OPENSHIFT_MYSQL_DB_USERNAME --dbpass $OPENSHIFT_MYSQL_DB_PASSWORD --dbname $db_name --confpath /tmp --pass 'admin123' 'Temporary Wiki' admin
+    popd
+
+    echo "---> [$wikiname] Updating database $db_name ..."
+    php maintenance/update.php --quick --wiki $wikiname
+  fi
+done < <(compgen -A variable)
+
+rm -rf $TMPWIKI /tmp/LocalSettings.php
