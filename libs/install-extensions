@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for pkg in https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_29-54d20c3.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_29-193339c.tar.gz https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_29-1e04d8c.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_29-7958904.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_29-de5f67d.tar.gz; do
+for pkg in https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_32-0f5bb58.tar.gz https://extdist.wmflabs.org/dist/extensions/googleAnalytics-REL1_32-6bd3bea.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_32-0b27530.tar.gz https://extdist.wmflabs.org/dist/extensions/MobileFrontend-REL1_32-9b48b3c.tar.gz https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_32-4c2a3ed.tar.gz https://extdist.wmflabs.org/dist/extensions/Scribunto-REL1_32-0d6a8f6.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_32-a509254.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_32-ceceb6f.tar.gz; do
   \curl -s -O $pkg
 done
 

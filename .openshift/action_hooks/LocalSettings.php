@@ -181,22 +181,22 @@ $wgDefaultSkin = "vector";
 
 # Enabled skins.
 # The following skins were automatically enabled:
-wfLoadSkin( 'CologneBlue' );
-wfLoadSkin( 'Modern' );
 wfLoadSkin( 'MonoBook' );
+wfLoadSkin( 'Timeless' );
 wfLoadSkin( 'Vector' );
 
 
 # Enabled Extensions. Most extensions are enabled by including the base extension file here
 # but check specific extension documentation for more details
 # The following extensions were automatically enabled:
-require_once "$IP/extensions/Scribunto/Scribunto.php";
+wfLoadExtension( 'Scribunto' );
 $wgScribuntoDefaultEngine = 'luastandalone';
-require_once "$IP/extensions/MobileFrontend/MobileFrontend.php";
+wfLoadExtension( 'MobileFrontend' );
 $wgMFAutodetectMobileView = true;
+$wgMFDefaultSkinClass = 'SkinVector';
 wfLoadExtension( 'Cite' );
 wfLoadExtension( 'CiteThisPage' );
-require_once "$IP/extensions/ConfirmEdit/ConfirmEdit.php";
+wfLoadExtension( 'ConfirmEdit' );
 wfLoadExtension( 'Gadgets' );
 wfLoadExtension( 'ImageMap' );
 wfLoadExtension( 'InputBox' );
@@ -261,7 +261,7 @@ $wgConfirmAccountRequestFormItems = array(
 
 # Google Login
 if ($wgGLSecret && $wgGLAppId) {
-    require_once "$IP/extensions/GoogleLogin/GoogleLogin.php";
+    wfLoadExtension( 'GoogleLogin' );
 }
 #$wgGLReplaceMWLogin = true;
 if ($allowed_domain) {

@@ -1,4 +1,4 @@
-FROM mediawiki:1.29
+FROM mediawiki:1.32
 
 COPY libs/ /var/www/libs/
 COPY php/ /var/www/html/

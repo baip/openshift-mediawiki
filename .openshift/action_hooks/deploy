@@ -6,7 +6,7 @@
 
 set -e
 
-version=1.29.0
+version="$(cat ${OPENSHIFT_REPO_DIR}/libs/VERSION)"
 
 if [ -z $OPENSHIFT_MYSQL_DB_HOST ]
 then

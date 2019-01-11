@@ -8,7 +8,7 @@ shopt -s dotglob
 echo "---> Installing application source..."
 mv /tmp/src/* ./
 
-version=1.29.0
+version="$(cat libs/VERSION)"
 libs/install-mediawiki ${version}
 cp -al mediawiki-${version}/* php/
 rm -rf mediawiki-${version}
