@@ -1,5 +1,7 @@
 FROM mediawiki:1.32
 
+RUN apt-get -qy update; apt-get -qy install --no-install-recommends unzip; apt-get -qy clean
+
 COPY libs/ /var/www/libs/
 COPY php/ /var/www/html/
 RUN a2enmod rewrite && cd extensions && /var/www/libs/install-extensions

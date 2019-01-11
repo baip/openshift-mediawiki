@@ -189,11 +189,6 @@ wfLoadSkin( 'Vector' );
 # Enabled Extensions. Most extensions are enabled by including the base extension file here
 # but check specific extension documentation for more details
 # The following extensions were automatically enabled:
-wfLoadExtension( 'Scribunto' );
-$wgScribuntoDefaultEngine = 'luastandalone';
-wfLoadExtension( 'MobileFrontend' );
-$wgMFAutodetectMobileView = true;
-$wgMFDefaultSkinClass = 'SkinVector';
 wfLoadExtension( 'Cite' );
 wfLoadExtension( 'CiteThisPage' );
 wfLoadExtension( 'ConfirmEdit' );
@@ -204,10 +199,8 @@ wfLoadExtension( 'Interwiki' );
 wfLoadExtension( 'LocalisationUpdate' );
 wfLoadExtension( 'Nuke' );
 wfLoadExtension( 'ParserFunctions' );
-wfLoadExtension( 'PdfHandler' );
 wfLoadExtension( 'Poem' );
 wfLoadExtension( 'Renameuser' );
-wfLoadExtension( 'SpamBlacklist' );
 wfLoadExtension( 'SyntaxHighlight_GeSHi' );
 wfLoadExtension( 'TitleBlacklist' );
 wfLoadExtension( 'WikiEditor' );
@@ -270,6 +263,27 @@ if ($allowed_domain) {
 $wgGLShowRight = true;
 
 $wgWhitelistRead = array( 'Special:RequestAccount', 'Special:GoogleLoginReturn' );
+
+# MarkdownExtraParser
+$MarkdownExtraParserOptions = array(
+  'use_raw_html' => true,
+);
+require_once "$IP/extensions/MarkdownExtraParser/MarkdownExtraParser.php";
+
+# MobileFrontend
+wfLoadExtension( 'MobileFrontend' );
+$wgMFAutodetectMobileView = true;
+$wgMFDefaultSkinClass = 'SkinVector';
+
+# PdfHandler
+wfLoadExtension( 'PdfHandler' );
+
+# Scribunto
+wfLoadExtension( 'Scribunto' );
+$wgScribuntoDefaultEngine = 'luastandalone';
+
+# SpamBlacklist
+wfLoadExtension( 'SpamBlacklist' );
 
 # UserMerge
 wfLoadExtension( 'UserMerge' );

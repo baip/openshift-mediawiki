@@ -1,7 +1,7 @@
 MediaWiki
 ========
 
-Docker images and OpenShift QuickStart for MediaWiki 1.29.0. It supports
+Docker images and OpenShift QuickStart for MediaWiki. It supports
 multi-site [Wiki family](https://www.mediawiki.org/wiki/Manual:Wiki_family).
 
 * To host another wiki called ABC (accessible at `https://your.wiki.com/abc/`), you need:
@@ -22,6 +22,7 @@ ImageMap,
 InputBox,
 Interwiki,
 LocalisationUpdate,
+MarkdownExtraParser,
 MobileFrontend,
 Nuke,
 ParserFunctions,
@@ -45,16 +46,16 @@ Docker
 1. Create the following two files to provide database credentials and wiki
    settings:
 
-`db.env`
+* db.env
 
-    ~~~
+    ```
     MYSQL_DATABASE=mediawiki
     MYSQL_ROOT_PASSWORD=CHANGE_ME_ROOT_PASSWORD
-    ~~~
+    ```
 
-`app.env`
+* app.env
 
-    ~~~
+    ```
     OPENSHIFT_MYSQL_DB_HOST=mysql
     OPENSHIFT_MYSQL_DB_PORT=3306
     OPENSHIFT_APP_NAME=mediawiki
@@ -67,23 +68,23 @@ Docker
     SMTP_PASSWORD=CHANGE_ME_SMTP_PASSWORD
     META_SITE_NAME=CHANGE_ME_SITE_NAME
     META_ADMIN_EMAIL=ADMIN@CHANGE_ME.COM
-    ~~~
+    ```
 
 2. Add the following lines to `app.env`,
 
-if you use Google Analytics:
+* if you use Google Analytics:
 
-    ~~~
+    ```
     META_GOOGLE_ANALYTICS_ACCOUNT=UA-1234567-8
-    ~~~
+    ```
 
-if you want Login via Google:
+* if you want Login via Google:
 
-    ~~~
+    ```
     META_GOOGLE_LOGIN_SECRET=abcdefg
     META_GOOGLE_LOGIN_APP_ID=987654321-hijklmnop.apps.googleusercontent.com
     META_GOOGLE_LOGIN_DOMAIN=YOUR_APP_DOMAIN_IF_NEEDED
-    ~~~
+    ```
 
 3. Run `docker-compose up -d`.
 
@@ -94,9 +95,9 @@ Quickstart v3
 1. Sign up at https://www.openshift.com and create a new project
 
 2. On the web console, click "Add to Project" -> "Import YAML/JSON", and paste the contents of the YAML file [here](https://raw.githubusercontent.com/baip/openshift-mediawiki/master/openshift/templates/mediawiki-mysql.yaml). Or alternatively, use `oc` command line:
-    ~~~
+    ```
     oc new-app -f https://raw.githubusercontent.com/baip/openshift-mediawiki/master/openshift/templates/mediawiki-mysql.yaml
-    ~~~
+    ```
 
 The default wiki can be accessed at `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/` or `https://{app}-{project}.{shard}.{amws}.openshiftapps.com/meta/`.
 
