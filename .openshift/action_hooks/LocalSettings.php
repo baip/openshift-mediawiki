@@ -270,6 +270,11 @@ $MarkdownExtraParserOptions = array(
 );
 require_once "$IP/extensions/MarkdownExtraParser/MarkdownExtraParser.php";
 
+# Math; Set MathML as default rendering option
+wfLoadExtension( 'Math' );
+$wgDefaultUserOptions['math'] = 'mathml';
+$wgMathFullRestbaseURL = 'https://en.wikipedia.org/api/rest_';
+
 # MobileFrontend
 wfLoadExtension( 'MobileFrontend' );
 $wgMFAutodetectMobileView = true;
