@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for pkg in https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_32-0f5bb58.tar.gz https://extdist.wmflabs.org/dist/extensions/googleAnalytics-REL1_32-6bd3bea.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_32-0b27530.tar.gz https://extdist.wmflabs.org/dist/extensions/Math-REL1_32-b976708.tar.gz https://extdist.wmflabs.org/dist/extensions/MobileFrontend-REL1_32-9b48b3c.tar.gz https://extdist.wmflabs.org/dist/extensions/PdfHandler-REL1_32-4c2a3ed.tar.gz https://extdist.wmflabs.org/dist/extensions/Scribunto-REL1_32-0d6a8f6.tar.gz https://extdist.wmflabs.org/dist/extensions/SpamBlacklist-REL1_32-a509254.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_32-66c7030.tar.gz; do
+for pkg in https://extdist.wmflabs.org/dist/extensions/ConfirmAccount-REL1_32-0ccceb9.tar.gz https://extdist.wmflabs.org/dist/extensions/googleAnalytics-REL1_32-6bd3bea.tar.gz https://extdist.wmflabs.org/dist/extensions/GoogleLogin-REL1_32-0b27530.tar.gz https://extdist.wmflabs.org/dist/extensions/Math-REL1_32-b976708.tar.gz https://extdist.wmflabs.org/dist/extensions/MobileFrontend-REL1_32-0524c7a.tar.gz https://extdist.wmflabs.org/dist/extensions/Scribunto-REL1_32-0d6a8f6.tar.gz https://extdist.wmflabs.org/dist/extensions/UserMerge-REL1_32-66c7030.tar.gz; do
   echo "Downloading $pkg..."
   \curl -s -L -O $pkg
 done
