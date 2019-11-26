@@ -1,4 +1,4 @@
-FROM mediawiki:1.32
+FROM mediawiki:1.33
 
 RUN apt-get -qy update; apt-get -qy install --no-install-recommends unzip; apt-get -qy clean
 
